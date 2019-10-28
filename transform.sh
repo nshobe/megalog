@@ -3,8 +3,13 @@
 set -eo pipefail
 CARS=$(ls logs)
 for CAR in $CARS; do
-  echo "Starting log folder $CAR"
-  for FILE in `ls logs/$CAR`; do
+  echo "Starting log folder $CAR" 
+  FILES=$(ls logs/$CAR)
+  if [ -z "$FILES" ]; then
+    echo "No log files for $CAR, continuing"
+    continue
+  fi 
+  for FILE in $FILES; do
     echo "Starting log file $FILE"
     FORMAT=$(head -1 logs/$CAR/$FILE| sed 's/"//g' | sed 's/\s+$//')
     if [[ "$FORMAT" =~ "MS3 Format 056" ]]; then
@@ -81,5 +86,9 @@ for CAR in $CARS; do
       gawk -i inplace -v field=$ITERATION -v header=$FIELD  '{$field = header"="$field; print}' /dev/shm/megalog/$FILE
     done
     mv /dev/shm/megalog/$FILE output/$CAR/$FILE
+    rm logs/$CAR/$FILE
+    echo "Completed: $FILE"
   done
+  echo "Completed: $CAR"
 done
+echo "Done"
