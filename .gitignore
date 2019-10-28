@@ -1,0 +1,5 @@
+# Ignore input logs
+logs
+
+# Ignore output logs
+output
