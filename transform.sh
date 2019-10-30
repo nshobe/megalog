@@ -87,11 +87,6 @@ for CAR in $CARS; do
       MIDDLE="$MIDDLE \"$FIELD=\"\$$ITERATION \" \"" 
     done
     bash -c "$BEGINNING $MIDDLE $END"
-#    for FIELD in ${FIELDS[@]}; do
-#      ((ITERATION=ITERATION+1))
-#      echo "Starting the $ITERATION number field called $FIELD"
-#      gawk -i inplace -v field=$ITERATION -v header=$FIELD  '{$field = header"="$field; print}' /dev/shm/megalog/$FILE
-#    done
     mv /dev/shm/megalog/$FILE output/$CAR/$FILE
     rm -f logs/$CAR/$FILE
     echo "Completed: $FILE"
