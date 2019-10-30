@@ -80,13 +80,15 @@ for CAR in $CARS; do
         $1 = $1"."a[2]; print \
       }' /dev/shm/megalog/$FILE
     sed -i '/^MARK/d' /dev/shm/megalog/$FILE
+    sed -i 's/:/-/g' /dev/shm/megalog/$FILE
+    sed -i 's/\(\s[a-zA-Z]*\)\.\([a-zA-Z]*=\)/\1-\2/g' /dev/shm/megalog/$FILE
     for FIELD in $FIELDS; do
       ((ITERATION=ITERATION+1))
       echo "Starting the $ITERATION number field called $FIELD"
       gawk -i inplace -v field=$ITERATION -v header=$FIELD  '{$field = header"="$field; print}' /dev/shm/megalog/$FILE
     done
     mv /dev/shm/megalog/$FILE output/$CAR/$FILE
-    rm logs/$CAR/$FILE
+    rm -f logs/$CAR/$FILE
     echo "Completed: $FILE"
   done
   echo "Completed: $CAR"
