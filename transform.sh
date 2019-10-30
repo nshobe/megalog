@@ -20,7 +20,7 @@ for CAR in $CARS; do
     fi
     mkdir -p output/$CAR
     mkdir -p /dev/shm/megalog
-    tail -n +5 logs/$CAR/$FILE > /dev/shm/megalog/$FILE
+    tail -n +5 logs/$CAR/$FILE | sed '/^MARK/d' > /dev/shm/megalog/$FILE
     DATE=$(grep Date logs/$CAR/$FILE | sed 's/Capture Date: //'| sed 's/"//g')
     YEAR=$(echo $DATE | awk '{print $6}')
     ZONE=$(echo $DATE | awk '{print $5}')
@@ -70,7 +70,7 @@ for CAR in $CARS; do
     LOGHOUR=$(echo $TIME | awk -F':' '{print $1}')
     LOGMIN=$(echo $TIME | awk -F':' '{print $2}')
     LOGSEC=$(echo $TIME | awk -F':' '{print $3}')
-    FIELDS=$(sed -n '3p' logs/$CAR/$FILE | sed 's/ //g; s/\t/ /g; s/:/-/g; s/\./-/g')
+    FIELDS=( $(sed -n '3p' logs/$CAR/$FILE | sed 's/ //g; s/\t/ /g; s/:/-/g; s/\./-/g') )
     ITERATION=0
     gawk -i inplace \
       -v year=$YEAR -v month=$MONTH -v day=$MDAY -v hour=$LOGHOUR -v minute=$LOGMIN -v second=$LOGSEC \
@@ -79,12 +79,19 @@ for CAR in $CARS; do
           mktime(year" "month" "day" "hour" "minute" "second)  + a[1]); \
         $1 = $1"."a[2]; print \
       }' /dev/shm/megalog/$FILE
-    sed -i '/^MARK/d' /dev/shm/megalog/$FILE
-    for FIELD in $FIELDS; do
-      ((ITERATION=ITERATION+1))
-      echo "Starting the $ITERATION number field called $FIELD"
-      gawk -i inplace -v field=$ITERATION -v header=$FIELD  '{$field = header"="$field; print}' /dev/shm/megalog/$FILE
+    BEGINNING="gawk -i inplace "
+    MIDDLE="'{print "
+    END="}' /dev/shm/megalog/$FILE"
+    for FIELD in ${FIELDS[@]}; do
+      ((ITERATION=ITERATION+1)) 
+      MIDDLE="$MIDDLE \"$FIELD=\"\$$ITERATION \" \"" 
     done
+    bash -c "$BEGINNING $MIDDLE $END"
+#    for FIELD in ${FIELDS[@]}; do
+#      ((ITERATION=ITERATION+1))
+#      echo "Starting the $ITERATION number field called $FIELD"
+#      gawk -i inplace -v field=$ITERATION -v header=$FIELD  '{$field = header"="$field; print}' /dev/shm/megalog/$FILE
+#    done
     mv /dev/shm/megalog/$FILE output/$CAR/$FILE
     rm -f logs/$CAR/$FILE
     echo "Completed: $FILE"
