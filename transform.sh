@@ -70,7 +70,7 @@ for CAR in $CARS; do
     LOGHOUR=$(echo $TIME | awk -F':' '{print $1}')
     LOGMIN=$(echo $TIME | awk -F':' '{print $2}')
     LOGSEC=$(echo $TIME | awk -F':' '{print $3}')
-    FIELDS=$(head -3 logs/$CAR/$FILE | tail -1 | sed 's/ //g' | sed 's/\t/ /g')
+    FIELDS=$(sed -n '3p' logs/$CAR/$FILE | sed 's/ //g; s/\t/ /g; s/:/-/g; s/\./-/g')
     ITERATION=0
     gawk -i inplace \
       -v year=$YEAR -v month=$MONTH -v day=$MDAY -v hour=$LOGHOUR -v minute=$LOGMIN -v second=$LOGSEC \
@@ -80,8 +80,6 @@ for CAR in $CARS; do
         $1 = $1"."a[2]; print \
       }' /dev/shm/megalog/$FILE
     sed -i '/^MARK/d' /dev/shm/megalog/$FILE
-    sed -i 's/:/-/g' /dev/shm/megalog/$FILE
-    sed -i 's/\(\s[a-zA-Z]*\)\.\([a-zA-Z]*=\)/\1-\2/g' /dev/shm/megalog/$FILE
     for FIELD in $FIELDS; do
       ((ITERATION=ITERATION+1))
       echo "Starting the $ITERATION number field called $FIELD"
